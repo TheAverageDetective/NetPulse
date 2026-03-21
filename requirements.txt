@@ -1,0 +1,2 @@
+# for http requests library
+requests>=2.31.0
