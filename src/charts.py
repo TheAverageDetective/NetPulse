@@ -1,6 +1,5 @@
 import pandas, numpy
-import matplotlib.pyplot as chart
-
+from matplotlib import pyplot as chart
 
 data = pandas.read_csv("../data/test_set.csv", delimiter=",")
 total_rows = data["timestamp"].count()
@@ -13,7 +12,8 @@ success_rows = data["timestamp"].count()
 print("Failed rows: ", total_rows - success_rows)
 
 
-chart.plot(data["hour_of_day"], data["elapsed_transfer_s"], color="orange")
+chart.style.use("dark_background")
+chart.plot(data["hour_of_day"], data["elapsed_transfer_s"], color="chartreuse")
 
 chart.savefig("../data/chart.jpg")
 
