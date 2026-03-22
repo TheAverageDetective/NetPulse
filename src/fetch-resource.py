@@ -11,7 +11,7 @@ import time
 import uuid
 import requests
 from zoneinfo import ZoneInfo
-from datetime import datetime, timezone
+from datetime import datetime
 from urllib.parse import urlparse, urlencode, urlunparse, parse_qs
 
 # Some constants
@@ -106,7 +106,7 @@ def runner(url: str, path: str) -> None:
     if not path:
         path = "./data/test_set.csv"
 
-    ist = ZoneInfo.timezone('Asia/Kolkata')
+    ist = ZoneInfo('Asia/Kolkata')
     current_time = datetime.now(ist)
 
     csv_row = {h: "" for h in CSV_HEADERS}
