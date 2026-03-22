@@ -1,25 +1,28 @@
-import threading, time, sched
+import threading, time, sched, datetime
 
-schedule = sched.scheduler()
+schedule = sched.scheduler(time.time, time.sleep)
 nextrun : sched.Event | None = None
 
 scheduler_thread = threading.Thread(target=schedule.run, daemon=True)
 scheduler_thread_stopped = threading.Event()
 
 
-def run_download (interval : int) :
-    print("Downloading at time", time.localtime(time.time()))
+def run_download (interval: int, next_time : int) :
+    global nextrun
+    print("Downloading at time", time.localtime().tm_hour)
     if not scheduler_thread_stopped.is_set():
-        schedule.enterabs(time.time() + (interval * 60), 1, run_download, [interval])
+        next_time += interval * 60
+        nextrun = schedule.enterabs(next_time, 1, run_download, [interval, next_time])
         # TODO: call runner here
+        print("Running hahahah")
 
 
 def start (interval : int) :
-    schedule.enter(0, 1, run_download, [interval])
+    schedule.enterabs(time.time(), 1, run_download, [interval, time.time()])
     scheduler_thread.start()
 
 
 def stop () :
     scheduler_thread_stopped.set()
-    if nextrun != None : schedule.cancel(nextrun)
+    if nextrun is not None : schedule.cancel(nextrun)
 
