@@ -1,8 +1,10 @@
 # cn-banana
 CN Banana project, team 12 project 15
 
+Download interval is 1 minute by default.
+
 ---
-> Logic
+> Files
 
 ```txt
 main.py             Manages all the logic
