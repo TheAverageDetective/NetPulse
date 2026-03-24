@@ -1,17 +1,11 @@
-
-
-
 """
 Loads recorded download data from the `data/` directory, performs statistical
 analysis on throughput values (mean, median, mode, std dev), identifies the
 busiest hour (minimum throughput), and prepares results for visualization/reporting.
 """
 
-import os
+import json
 import pandas as pd
-
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-DATA_PATH = os.path.join(BASE_DIR, "data", "test_set1.csv")
 
 THROUGHPUT_COL = "throughput_mbps"
 HOUR_COL       = "hour_of_day"
@@ -27,7 +21,6 @@ def load_data(path: str) -> pd.DataFrame:
 def analyze_throughput(df: pd.DataFrame) -> dict:
     throughput = df[THROUGHPUT_COL]
     stats = throughput.agg(["mean", "median", "min", "max", "std"])
-
     return {
         "mean":         stats["mean"],
         "median":       stats["median"],
@@ -52,7 +45,19 @@ def print_report(stats: dict) -> None:
     ]))
 
 
-if __name__ == "__main__":
-    df = load_data(DATA_PATH)
+def save_report (stats : dict, reportpath : str) -> None :
+    reportfile = open(reportpath, "w")
+    for key in stats.keys() :
+        stats[key] = int(stats[key])
+    json.dump(stats, reportfile, indent=4)
+    reportfile.flush()
+    reportfile.close()
+    print("\nReport saved")
+
+
+def analyze (filepath : str, reportpath : str) :
+    df = load_data(filepath)
     stats = analyze_throughput(df)
     print_report(stats)
+    save_report(stats, reportpath)
+
