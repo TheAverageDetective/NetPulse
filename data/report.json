@@ -1,0 +1,9 @@
+{
+    "mean": 144,
+    "median": 150,
+    "mode": 85,
+    "min": 85,
+    "max": 184,
+    "std_dev": 31,
+    "busiest_hour": 20
+}
