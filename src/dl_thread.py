@@ -16,7 +16,7 @@ scheduler_thread_stopped = threading.Event()
 
 def run_download (url : str, file : str, interval: int, next_time : int) :
     global nextrun
-    print("Downloading at time", time.localtime().tm_hour)
+    print("Downloading at hour", time.localtime().tm_hour)
 
     if not scheduler_thread_stopped.is_set():
         next_time += interval * 60
