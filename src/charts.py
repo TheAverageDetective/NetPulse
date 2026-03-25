@@ -4,8 +4,14 @@ from matplotlib import pyplot as chart, font_manager
 
 def generate (filepath : str, chartpath : str) :
 
-    data = pandas.read_csv(filepath, delimiter=",")
+    # Skip malformed CSV rows so one bad write does not break chart generation.
+    data = pandas.read_csv(filepath, delimiter=",", on_bad_lines="skip", engine="python")
     data = data[ data["result"] != "failed" ]       # We filter out failed downloads
+    data["elapsed_transfer_s"] = pandas.to_numeric(data["elapsed_transfer_s"], errors="coerce")
+    data = data.dropna(subset=["timestamp", "elapsed_transfer_s"])
+    if data.empty:
+        print("No valid successful rows found to generate chart.")
+        return
 
     # Use HH:MM on x-axis
     data["x-axis"] = data["timestamp"].map(lambda time : ":".join(time.split("T")[1].split(":")[:2]))
