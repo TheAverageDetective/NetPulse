@@ -6,10 +6,10 @@
 
 import csv
 import os
-import socket
 import time
 import uuid
-import requests
+import ssl
+import socket
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from urllib.parse import urlparse, urlencode, urlunparse, parse_qs
@@ -47,43 +47,78 @@ def bust_cache(url: str) -> str:
     return urlunparse(parsed_url._replace(query=new_query))     # _replace() takes kwargs
 
 
+# initiates a https GET request over an established secure TCP socket
+# streams the body in chunks, while maintaining a perf_counter and total byte count
+# computes throughput and elapsed time and the function returns it
 def stream_download(url: str) -> dict:
-    headers = {
-        "Cache-Control": "no-cache, no-store, must-revalidate",
-        "Pragma": "no-cache",
-        "Expires": "0",         # resource expires immediately
-        "Connection": "close"   # for non-persistent http
-    }
+    parsed_url = urlparse(url)
+    hostname = parsed_url.hostname
+    port = parsed_url.port or 443
+    query = parsed_url.query
+    path = parsed_url.path
 
-    # invoke a GET request for the current session, with the above headers
-    response = requests.get(
-        url=url,
-        headers=headers,
-        stream=True,
-        timeout=REQUEST_TIMEOUT,
-        allow_redirects=True,
-    )
+    # if the path contains query strings(handling authentication token such as SAS), include it in path
+    path = f"{path}?{query}" if query else path
 
-    response.raise_for_status()
+    tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    context = ssl.create_default_context()
 
-    start_time = time.perf_counter()
-    total_bytes = 0
-    for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
-        total_bytes += len(chunk)
+    try:
+        # wrap the socket with SSL context for HTTPS
+        secure_tcp_socket = context.wrap_socket(tcp_socket, server_hostname=hostname)
+        secure_tcp_socket.connect((hostname, port))
 
-    elapsed_time = time.perf_counter() - start_time
+        headers = [
+            f"GET {path} HTTP/1.1",
+            f"Host: {hostname}",
+            "User-Agent: Python-Socket-Client/1.0",
+            "Cache-Control: no-cache, no-store, must-revalidate",
+            "Pragma: no-cache",
+            "Expires: 0",
+            "Connection: close",
+
+            # since the request header ends with 2 newlines
+            "",
+            ""
+        ]
+
+        # append a newline(with carriage return) for each header line
+        request = "\r\n".join(headers)
+        secure_tcp_socket.sendall(request.encode("utf-8"))
+
+        raw_response = b""
+        start_time = time.perf_counter()
+        while True:
+            data = secure_tcp_socket.recv(CHUNK_SIZE)
+            if not data:
+                break
+            raw_response += data
+        elapsed_time = time.perf_counter() - start_time     # a minor inaccuracy here: we're including the time taken to parse the header but its negligible
+
+    except Exception as e:
+        raise
+    finally:
+        secure_tcp_socket.close()
+
+    header_part, body = raw_response.split(b"\r\n\r\n", 1)
+
+    status_line = header_part.split(b"\r\n")[0].decode()
+    http_status = int(status_line.split(" ")[1])
+
+    total_bytes = len(body)
 
     throughput = (total_bytes * 8) / (elapsed_time * 1e6) if elapsed_time > 0 else 0.0
 
     return {
-        "http_status": response.status_code,
-        "elapsed_transfer_s": round(elapsed_time, 4),   # seconds
+        "http_status": http_status,
+        "elapsed_transfer_s": round(elapsed_time, 4),
         "filesize_bytes": total_bytes,
         "throughput_mbps": round(throughput, 4),
     }
 
 # insert a header if not present
 def create_csv_header(path: str) -> None:
+    os.makedirs(os.path.dirname(path), exist_ok=True)   # create data/ if missing
     if not os.path.exists(path):
         with open(path, "w", newline="") as file:
             writer = csv.DictWriter(file, fieldnames=CSV_HEADERS)
