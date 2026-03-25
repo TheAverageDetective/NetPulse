@@ -1,7 +1,6 @@
-# for http requests library
-requests>=2.31.0
 # for parsing command line args
 argparse
+
 # for statistics
 numpy
 matplotlib
