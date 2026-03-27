@@ -21,9 +21,12 @@ def generate (filepath : str, chartpath : str) :
     font_manager.fontManager.addfont(path=font_path)
     chart.rcParams["font.family"] = font_manager.FontProperties(fname=font_path, weight="bold", size="xx-large").get_name()
     chart.style.use("dark_background")
-    chart.plot(data["x-axis"], data["elapsed_transfer_s"], color="chartreuse")
+    chart.plot(data["x-axis"], data["throughput_mbps"], color="chartreuse")
     chart.title("Network speed trend", fontsize=16)
     chart.xlabel("Download time (HH:MM)", fontsize=16)
+    chart.xticks(rotation=40)
+    chart.tight_layout()
+    chart.subplots_adjust(0.1, 0.15)
     chart.ylabel("Throughput (Mbps)", fontsize=16)
 
     chart.savefig(chartpath, dpi=200)
