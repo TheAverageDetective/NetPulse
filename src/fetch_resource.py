@@ -10,6 +10,7 @@ import time
 import uuid
 import ssl
 import socket
+import io
 from zoneinfo import ZoneInfo
 from datetime import datetime
 from urllib.parse import urlparse, urlencode, urlunparse, parse_qs
@@ -86,13 +87,13 @@ def stream_download(url: str) -> dict:
         request = "\r\n".join(headers)
         secure_tcp_socket.sendall(request.encode("utf-8"))
 
-        raw_response = b""
+        raw_response = io.BytesIO()
         start_time = time.perf_counter()
         while True:
             data = secure_tcp_socket.recv(CHUNK_SIZE)
             if not data:
                 break
-            raw_response += data
+            raw_response.write(data)
         elapsed_time = time.perf_counter() - start_time     # a minor inaccuracy here: we're including the time taken to parse the header but its negligible
 
     except Exception as e:
@@ -100,6 +101,7 @@ def stream_download(url: str) -> dict:
     finally:
         secure_tcp_socket.close()
 
+    raw_response = raw_response.getvalue()
     header_part, body = raw_response.split(b"\r\n\r\n", 1)
 
     status_line = header_part.split(b"\r\n")[0].decode()
