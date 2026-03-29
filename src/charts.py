@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use("Agg")
 import pandas
 from matplotlib import pyplot as chart, font_manager
 
