@@ -32,3 +32,4 @@ def generate (filepath : str, chartpath : str) :
     chart.ylabel("Throughput (Mbps)", fontsize=16)
 
     chart.savefig(chartpath, dpi=200)
+    chart.clf()
