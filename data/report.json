@@ -1,9 +1,9 @@
 {
-    "mean": 108,
-    "median": 111,
-    "mode": 6,
-    "min": 6,
-    "max": 183,
-    "std_dev": 48,
+    "mean": 52,
+    "median": 57,
+    "mode": 11,
+    "min": 11,
+    "max": 78,
+    "std_dev": 21,
     "busiest_hour": 14
 }
