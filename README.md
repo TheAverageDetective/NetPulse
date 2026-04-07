@@ -8,12 +8,14 @@ Download interval is 1 minute by default. (Can be configured via cli)
 > Files
 
 ```txt
+server.py           Hosts the web interface
 main.py             Manages all the logic
-dl_thread.py        Creates a separate thread to download the file at
-                    intervals to avoid blocking the main thread
-fetch-resource.py   Downloads the file once and stores metrics in csv
 
-charts.py           Generates a chart from the csv for visualization
+src/dl_thread.py        Creates a separate thread to download the file at
+                    intervals to avoid blocking the main thread
+src/fetch-resource.py   Downloads the file once and stores metrics in csv
+
+src/charts.py           Generates a chart from the csv for visualization
 ```
 
 ___
